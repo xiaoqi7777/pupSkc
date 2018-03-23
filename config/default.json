@@ -9,26 +9,20 @@
   },
   "http_api": {
     "port": 3001,
-    "host": "192.168.1.81",
-    //一个频道最大允许的输出数量
-    "max_output_per_channel": 4,
-    "is_show_shutdown_botten": false
+    "host": "192.168.1.81"
   },
   "transcoder": {
-    "host": "127.0.0.1",
+    "host": "192.168.1.81",
     "port": 2030
   },
   "cloud": {
     "remote_control_bind_port": 0,
-    "sk_host": "ws://118.31.6.145",
-    "sk_port": "80",
-    "ws_host": "ws://118.31.6.145",
-    "ws_port": "8000",
+    "sk_host": "ws://192.168.1.104",
+    "sk_port": "3000",
     "socket_type":"socket_io" //socket_io,web_socket
   },
   "socket_io":{
     "ping_interval": 3000,
     "ping_timeout": 15000
-  },
-  "enable_easy_monitor": false
+  }
 }

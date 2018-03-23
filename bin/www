@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('demo:server');
 var http = require('http');
+import { socket_io_server } from '../sks'
 
 /**
  * Get port from environment and store in Express.
@@ -28,6 +29,8 @@ var server = http.createServer(app.callback());
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+socket_io_server(server);
+require('../skc').socket_io_client();
 
 /**
  * Normalize a port into a number, string, or false.
