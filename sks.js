@@ -2,6 +2,7 @@ let socket_io = require('socket.io');
 import root_logger from "./logger";
 const logger = root_logger.child({ tag: "socket" });
 const config = require('config');
+import { SOCKET } from "./skc"
 
 
 let io;
@@ -58,8 +59,8 @@ function socket_io_server(server) {
 
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
-      console.dir('获取频道列表成功', result, '*********************');
-      logger.info(result);
+      SOCKET.emit('get_channel_list_reply', result);
+      logger.info(result.channels);
     })
 
     socket.on('disconnect', (msg) => {
@@ -86,4 +87,4 @@ function notify_web(msg) {
   }
 }
 
-export { socket_io_server, notify_web }
+export { socket_io_server, notify_web, io as IO }
