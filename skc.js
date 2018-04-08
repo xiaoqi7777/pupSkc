@@ -7,7 +7,7 @@ const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
 const is_empty = require('./lib/utils').is_empty;
 const { version } = require('./version');
-import { start_task } from "./lib/transcoder.js";
+import { start_task, stop_task } from "./lib/transcoder.js";
 
 import { IO } from "./sks"
 let serial_number;
@@ -39,11 +39,11 @@ async function socket_io_client() {
     device_id = data.device_id;
     remote_password = data.remote_password;
     logger.info(`设备登录成功,修改连接状态 ${skc_online}`);
-    IO.sockets.emit('Message', {
-      "type": "GetChannelList",
-      "data": {
-      }
-    });
+    // IO.sockets.emit('Message', {
+    //   "type": "GetChannelList",
+    //   "data": {
+    //   }
+    // });
   });
 
   socket.on('not found', async () => {
@@ -63,6 +63,11 @@ async function socket_io_client() {
     socket.emit('start_channel_reply', responce);
   })
 
+  socket.on('stop_channel', async (data) => {
+    logger.info(`停止任务：${data.task_id}`)
+    let responce = await stop_task(config.transcoder.host, config.transcoder.port, data.task_id);
+    socket.emit('stop_channel_reply', responce);
+  })
 
   //远程ssh
   socket.on("rsh", function (data) {

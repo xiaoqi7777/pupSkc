@@ -1,6 +1,6 @@
 let socket_io = require('socket.io');
 import root_logger from "./logger";
-const logger = root_logger.child({ tag: "socket" });
+const logger = root_logger.child({ tag: "socket_s" });
 const config = require('config');
 import { SOCKET } from "./skc"
 
@@ -47,11 +47,11 @@ function socket_io_server(server) {
       console.log(result);
       if (result.data.status == 'OK') {
         logger.info('认证成功');
-        socket.emit('Message', {
-          "type": "GetChannelList",
-          "data": {
-          }
-        });
+        // socket.emit('Message', {
+        //   "type": "GetChannelList",
+        //   "data": {
+        //   }
+        // });
       } else {
         logger.info('认证失败');
       }
@@ -60,7 +60,7 @@ function socket_io_server(server) {
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
       SOCKET.emit('get_channel_list_reply', result);
-      logger.info(result.channels);
+      logger.info(`获取设备频道列表成功,${result.channels.length}`);
     })
 
     socket.on('disconnect', (msg) => {
