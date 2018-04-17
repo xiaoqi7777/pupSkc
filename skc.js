@@ -6,6 +6,7 @@ const exec = require('child_process').exec;
 const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
 const is_empty = require('./lib/utils').is_empty;
+const get_task_info = require('./lib/utils').get_task_info;
 const { version } = require('./version');
 import { start_task, stop_task } from "./lib/transcoder.js";
 
@@ -67,6 +68,11 @@ async function socket_io_client() {
     logger.info(`停止任务：${data.task_id}`)
     let responce = await stop_task(config.transcoder.host, config.transcoder.port, data.task_id);
     socket.emit('stop_channel_reply', responce);
+  })
+
+  socket.on('sync_task_info', async(data) => {
+  let info =  await get_task_info(data.task_id);
+   socket.emit('sync_task_info_reply',info);
   })
 
   //远程ssh

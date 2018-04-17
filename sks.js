@@ -18,12 +18,13 @@ function socket_io_server(server) {
     logger.info('clent socket connect')
 
     socket.on('login', (msg) => {
-      let params = JSON.parse(msg);
-      if (params.name) {
-        socket['device_id'] = msg.name;
-        is_login = true;
-      };
-      if (is_login) {
+      // logger.info(msg,typeof(msg),'------------')
+      // let params = JSON.parse(msg);
+      // if (params.name) {
+      //   socket['device_id'] = msg.name;
+      //   is_login = true;
+      // };
+      // if (is_login) {
         let data = {
           type: 'audth',
           data: {
@@ -38,13 +39,13 @@ function socket_io_server(server) {
         }
         socket.emit('Message', data);
         console.log('发送认证消息成功')
-      }
+      // }
     });
 
 
     socket.on('login_reply', (msg) => {
       let result = JSON.parse(msg);
-      console.log(result);
+      // console.log(result);
       if (result.data.status == 'OK') {
         logger.info('认证成功');
         // socket.emit('Message', {
