@@ -76,6 +76,7 @@ async function socket_io_client() {
       socket.emit('sync_task_info_reply', info);
     } else {
       socket.emit('task_auto_stop', { 'task_id': data.task_id });
+      logger.info(`发送自动停止任务成功`);
     }
   })
 
