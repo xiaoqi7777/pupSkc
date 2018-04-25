@@ -70,9 +70,13 @@ async function socket_io_client() {
     socket.emit('stop_channel_reply', responce);
   })
 
-  socket.on('sync_task_info', async(data) => {
-  let info =  await get_task_info(data.task_id);
-   socket.emit('sync_task_info_reply',info);
+  socket.on('sync_task_info', async (data) => {
+    let info = await get_task_info(data.task_id);
+    if (info.task_id) {
+      socket.emit('sync_task_info_reply', info);
+    } else {
+      socket.emit('task_auto_stop', { 'task_id': data.task_id });
+    }
   })
 
   //远程ssh
