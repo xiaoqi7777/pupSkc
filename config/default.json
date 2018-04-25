@@ -12,13 +12,13 @@
     "host": "192.168.1.81"
   },
   "transcoder": {
-    "host": "192.168.1.163",
+    "host": "127.0.0.1",
     "port": 2030
   },
   "cloud": {
     "remote_control_bind_port": 0,
-    "sk_host": "ws://192.168.1.116",
-    "sk_port": "3003",
+    "sk_host": "ws://47.96.129.127",
+    "sk_port": "3000",
     "socket_type":"socket_io" //socket_io,web_socket
   },
   "socket_io":{
