@@ -5,11 +5,11 @@ var WebSocketServer = require('ws')
 
 
 var wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
-
-wss.on('open', function (wss) {
+var stream;
+wss.on('open', function () {
   console.info('socket connected')
 
-  var stream = net.connect({
+  stream = net.connect({
     port: 1717
   })
 
@@ -156,7 +156,8 @@ wss.on('open', function (wss) {
 
   stream.on('readable', tryRead)
 
-})
+});
+
 wss.on('close', function () {
   console.info('Lost a client')
   stream.end()
