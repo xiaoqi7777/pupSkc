@@ -4,7 +4,7 @@ var WebSocketServer = require('ws')
 
 
 
-var wss = new WebSocketServer('ws://192.168.1.192:3000', 'minicap')
+var wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
 
 wss.on('open', function (wss) {
   console.info('socket connected')
@@ -156,35 +156,33 @@ wss.on('open', function (wss) {
 
   stream.on('readable', tryRead)
 
-  wss.on('close', function () {
-    console.info('Lost a client')
-    stream.end()
-  })
-
-  let touch_ns;
-
-  wss.on('message', function (message) {
-    console.log('---------> ' + message);
-    if (!touch_ns) {
-      touch_ns = net.connect({
-        port: 1111
-      })
-
-      touch_ns.on('error', function () {
-        console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
-        process.exit(1)
-      })
-    }
-    var msg = JSON.parse(message);
-    var touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
-    console.log(touch_cmd);
-    touch_ns.write(touch_cmd);
-  });
-
-  wss.on('error', function (error) {
-    console.log(`error ${error}`);
-  })
-
+})
+wss.on('close', function () {
+  console.info('Lost a client')
+  stream.end()
 })
 
-export {wss}
+let touch_ns;
+
+wss.on('message', function (message) {
+  console.log('---------> ' + message);
+  if (!touch_ns) {
+    touch_ns = net.connect({
+      port: 1111
+    })
+
+    touch_ns.on('error', function () {
+      console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
+      process.exit(1)
+    })
+  }
+  var msg = JSON.parse(message);
+  var touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
+  console.log(touch_cmd);
+  touch_ns.write(touch_cmd);
+});
+wss.on('error', function (error) {
+  console.log(`error ${error}`);
+})
+
+export { wss }
