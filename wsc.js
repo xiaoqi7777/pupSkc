@@ -2,7 +2,8 @@ var WebSocketServer = require('ws')
   , path = require('path')
   , net = require('net')
   , process = require('child_process')
-
+import root_logger from './logger';
+const logger = root_logger.child({ tag: 'wsc' });
 
 
 var wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
@@ -178,12 +179,14 @@ wss.on('message', function (message) {
   console.log('---------> ' + message);
   let req_msg = JSON.parse(message);
   if (req_msg.code > 0) {
-    console.log(`遥控器转发信息：${req_msg}`)
+    logger.info(`遥控器转发信息：${JSON.stringify(req_msg)}`)
     let _shell = `adb shell input keyevent ${req_msg.code}`;
     process.exec(_shell, function (error, stdout, stderr) {
       if (error !== null) {
-        console.log('exec error: ' + error);
-      }
+        logger.warn('exec error: ' + error);
+      };
+      logger.info(`stdout: ${stdout}`);
+      logger.info(`stderr: ${stderr}`);
     });
   } else {
     if (!touch_ns) {
