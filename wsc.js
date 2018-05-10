@@ -9,6 +9,14 @@ var stream;
 wss.on('open', function () {
   console.info('socket connected')
 
+  let res = {
+    'cmd':'login',
+    'type':'backend',
+    'device_id':1
+  }
+
+   wss.send(JSON.stringify(res));
+
   stream = net.connect({
     port: 1717
   })
@@ -167,6 +175,12 @@ let touch_ns;
 
 wss.on('message', function (message) {
   console.log('---------> ' + message);
+  let msg = JSON.parse(message);
+  if (msg.code > 0) {
+    
+  } else {
+    
+  }
   if (!touch_ns) {
     touch_ns = net.connect({
       port: 1111
