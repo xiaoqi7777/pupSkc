@@ -1,6 +1,7 @@
 var WebSocketServer = require('ws')
   , path = require('path')
   , net = require('net')
+  , process = require('child_process')
 
 
 
@@ -10,12 +11,12 @@ wss.on('open', function () {
   console.info('socket connected')
 
   let res = {
-    'cmd':'login',
-    'type':'backend',
-    'device_id':1
+    'cmd': 'login',
+    'type': 'backend',
+    'device_id': 1
   }
 
-   wss.send(JSON.stringify(res));
+  wss.send(JSON.stringify(res));
 
   stream = net.connect({
     port: 1717
@@ -178,24 +179,28 @@ wss.on('message', function (message) {
   let req_msg = JSON.parse(message);
   if (req_msg.code > 0) {
     console.log(`遥控器转发信息：${req_msg}`)
-    
+    let _shell = `adb shell input keyevent ${req_msg.code}`;
+    process.exec(_shell, function (error, stdout, stderr) {
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
+    });
   } else {
-    
-  }
-  if (!touch_ns) {
-    touch_ns = net.connect({
-      port: 1111
-    })
+    if (!touch_ns) {
+      touch_ns = net.connect({
+        port: 1111
+      })
 
-    touch_ns.on('error', function () {
-      console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
-      process.exit(1)
-    })
+      touch_ns.on('error', function () {
+        console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
+        process.exit(1)
+      })
+    }
+    var msg = JSON.parse(message);
+    var touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
+    console.log(touch_cmd);
+    touch_ns.write(touch_cmd);
   }
-  var msg = JSON.parse(message);
-  var touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
-  console.log(touch_cmd);
-  touch_ns.write(touch_cmd);
 });
 wss.on('error', function (error) {
   console.log(`error ${error}`);
