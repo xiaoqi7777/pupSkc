@@ -175,8 +175,9 @@ let touch_ns;
 
 wss.on('message', function (message) {
   console.log('---------> ' + message);
-  let msg = JSON.parse(message);
-  if (msg.code > 0) {
+  let req_msg = JSON.parse(message);
+  if (req_msg.code > 0) {
+    console.log(`遥控器转发信息：${req_msg}`)
     
   } else {
     
