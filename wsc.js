@@ -9,6 +9,7 @@ const logger = root_logger.child({ tag: 'wsc' });
 let wss;
 let stream;
 let is_ponged;
+let wsc_online = false;
 function on_open() {
   logger.info('socket connected')
   wss.ping('', true, false);
