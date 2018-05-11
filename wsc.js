@@ -139,7 +139,7 @@ function on_open() {
               process.exit(1)
             }
 
-            wss.send({ 'cmd': 'image', 'data': frameBody }, {
+            wss.send(frameBody, {
               binary: true
             })
 
