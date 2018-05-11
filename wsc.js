@@ -6,20 +6,20 @@ var WebSocketServer = require('ws')
 import root_logger from './logger';
 const logger = root_logger.child({ tag: 'wsc' });
 
-let wss;
+let wsc;
 let stream;
 let is_ponged;
 let wsc_online = false;
 function on_open() {
   logger.info('socket connected')
-  wss.ping('', true, false);
+  wsc.ping('', true, false);
   let res = {
     'cmd': 'login',
     'type': 'backend',
     'device_id': 1
   }
 
-  wss.send(JSON.stringify(res));
+  wsc.send(JSON.stringify(res));
 
   stream = net.connect({
     port: 1717
@@ -140,7 +140,7 @@ function on_open() {
               process.exit(1)
             }
 
-            wss.send(frameBody, {
+            wsc.send(frameBody, {
               binary: true
             })
 
@@ -222,13 +222,13 @@ function on_close() {
 let retry_interval = 1000;
 let ping_interval;
 async function connect_server() {
-  wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
+  wsc = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
 
-  wss.on('message', on_message);
-  wss.on('open', on_open);
-  wss.on('close', on_close);
-  wss.on('pong', on_pong);
-  wss.on('error', function (error) {
+  wsc.on('message', on_message);
+  wsc.on('open', on_open);
+  wsc.on('close', on_close);
+  wsc.on('pong', on_pong);
+  wsc.on('error', function (error) {
     logger.info(`error ${error}`);
   })
   if (!ping_interval) {
@@ -236,7 +236,7 @@ async function connect_server() {
       console.log('ping');
       if (is_ponged && wsc_online) {
         try {
-          wss.ping('', true, false);
+          wsc.ping('', true, false);
         } catch (e) {
           logger.warn('websocket send ping exception:' + e);
           wsc_online = false;
@@ -247,7 +247,7 @@ async function connect_server() {
           logger.info('websocket connection timout');
           wsc_online = false;
           try {
-            wss.close();
+            wsc.close();
           } catch (e) {
           }
         }
@@ -257,4 +257,4 @@ async function connect_server() {
 }
 
 
-export { wss, connect_server as connect_websocket_server, }
+export { wsc, connect_server as connect_websocket_server, }
