@@ -24,5 +24,8 @@
   "socket_io":{
     "ping_interval": 3000,
     "ping_timeout": 15000
+  },
+  "ws":{
+    "heart_beat":5000
   }
 }

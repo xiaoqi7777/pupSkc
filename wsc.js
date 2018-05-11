@@ -2,15 +2,16 @@ var WebSocketServer = require('ws')
   , path = require('path')
   , net = require('net')
   , process = require('child_process')
+  , config = require('config')
 import root_logger from './logger';
 const logger = root_logger.child({ tag: 'wsc' });
 
-
-var wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
-var stream;
-wss.on('open', function () {
-  console.info('socket connected')
-
+let wss;
+let stream;
+let is_ponged;
+function on_open() {
+  logger.info('socket connected')
+  wss.ping('', true, false);
   let res = {
     'cmd': 'login',
     'type': 'backend',
@@ -28,13 +29,12 @@ wss.on('open', function () {
     process.exit(1)
   })
 
-
-  var readBannerBytes = 0
-  var bannerLength = 2
-  var readFrameBytes = 0
-  var frameBodyLength = 0
-  var frameBody = new Buffer(0)
-  var banner = {
+  let readBannerBytes = 0
+  let bannerLength = 2
+  let readFrameBytes = 0
+  let frameBodyLength = 0
+  let frameBody = new Buffer(0)
+  let banner = {
     version: 0
     , length: 0
     , pid: 0
@@ -139,7 +139,7 @@ wss.on('open', function () {
               process.exit(1)
             }
 
-            wss.send(frameBody, {
+            wss.send({ 'cmd': 'image', 'data': frameBody }, {
               binary: true
             })
 
@@ -165,17 +165,11 @@ wss.on('open', function () {
   }
 
   stream.on('readable', tryRead)
+}
 
-});
-
-wss.on('close', function () {
-  console.info('Lost a client')
-  stream.end()
-})
 
 let touch_ns;
-
-wss.on('message', function (message) {
+function on_message() {
   console.log('---------> ' + message);
   let req_msg = JSON.parse(message);
   if (req_msg.code > 0) {
@@ -204,9 +198,62 @@ wss.on('message', function (message) {
     console.log(touch_cmd);
     touch_ns.write(touch_cmd);
   }
-});
-wss.on('error', function (error) {
-  console.log(`error ${error}`);
-})
+}
 
-export { wss }
+function on_pong() {
+  is_ponged = true;
+}
+
+function on_close() {
+  logger.info(`client   close`)
+  stream.end();
+  wsc_online = false;
+
+  retry_interval += retry_interval;
+  if (retry_interval > 20000) {
+    retry_interval = 1000;
+  }
+  logger.info(`closed, retry in ${retry_interval / 1000} second`);
+  setTimeout(connect_server, retry_interval);
+}
+
+
+let retry_interval = 1000;
+let ping_interval;
+async function connect_server() {
+  wss = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
+
+  wss.on('message', on_message);
+  wss.on('open', on_open);
+  wss.on('close', on_close);
+  wss.on('pong', on_pong);
+  wss.on('error', function (error) {
+    logger.info(`error ${error}`);
+  })
+  if (!ping_interval) {
+    ping_interval = setInterval(function ping() {
+      console.log('ping');
+      if (is_ponged && wsc_online) {
+        try {
+          wss.ping('', true, false);
+        } catch (e) {
+          logger.warn('websocket send ping exception:' + e);
+          wsc_online = false;
+        }
+        is_ponged = false;
+      } else {
+        if (wsc_online) {
+          logger.info('websocket connection timout');
+          wsc_online = false;
+          try {
+            wss.close();
+          } catch (e) {
+          }
+        }
+      }
+    }, config.ws.heart_beat ? config.ws.heart_beat : 10000);
+  }
+}
+
+
+export { wss, connect_server as connect_websocket_server, }
