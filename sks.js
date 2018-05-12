@@ -10,6 +10,8 @@ const md5 = require('md5');
 
 let io;
 let is_login = false;
+let single_media_tasks = {};
+
 
 function socket_io_server(server) {
   io = require("socket.io")(server, {
@@ -55,8 +57,6 @@ function socket_io_server(server) {
         logger.info('认证失败');
       }
     });
-
-    let single_media_tasks = {};
 
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
@@ -125,4 +125,4 @@ function notify_web(msg) {
   }
 }
 
-export { socket_io_server, notify_web, io as IO , single_media_tasks}
+export { socket_io_server, notify_web, io as IO, single_media_tasks }
