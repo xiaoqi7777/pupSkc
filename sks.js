@@ -56,6 +56,8 @@ function socket_io_server(server) {
       }
     });
 
+    let single_media_tasks = {};
+
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
       SOCKET.emit('get_channel_list_reply', result);
@@ -85,9 +87,10 @@ function socket_io_server(server) {
         task_json.output.protocol = config.transcoder.out_type;
         logger.info(`点播转码任务：${task_json}`)
         let responce = await start_task(config.transcoder.host, config.transcoder.port, task_json);
-        logger.info(`下发点播转码任务结果:${responce}`);
+        logger.info(`下发点播转码任务结果:${JSON.stringify(responce)}`);
         if (responce.ret === 0) {
           let play_url = `${_output_address}/${_stream_name}`;
+          single_media_tasks[`${play_url}`] = responce.task_id;
           logger.info(`点播播放地址:${play_url}`);
           socket.emit('single_media', { 'play_url': play_url });
         }
@@ -122,4 +125,4 @@ function notify_web(msg) {
   }
 }
 
-export { socket_io_server, notify_web, io as IO }
+export { socket_io_server, notify_web, io as IO , single_media_tasks}

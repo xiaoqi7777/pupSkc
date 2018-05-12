@@ -5,6 +5,8 @@ var WebSocketServer = require('ws')
   , config = require('config')
 import root_logger from './logger';
 const logger = root_logger.child({ tag: 'wsc' });
+import { start_task, stop_task } from "./lib/transcoder.js";
+import { single_media_tasks } from './sks'
 
 let wsc;
 let stream;
@@ -173,31 +175,48 @@ let touch_ns;
 function on_message(message) {
   console.log('---------> ' + message);
   let req_msg = JSON.parse(message);
-  if (req_msg.code > 0) {
-    logger.info(`遥控器转发信息：${JSON.stringify(req_msg)}`)
-    let _shell = `adb shell input keyevent ${req_msg.code}`;
-    process.exec(_shell, function (error, stdout, stderr) {
-      if (error !== null) {
-        logger.warn('exec error: ' + error);
-      };
-      logger.info(`stdout: ${stdout}`);
-      logger.info(`stderr: ${stderr}`);
-    });
-  } else {
-    if (!touch_ns) {
-      touch_ns = net.connect({
-        port: 1111
-      })
+  switch (req_msg.cmd) {
+    case 'key':
+      if (req_msg.code > 0) {
+        logger.info(`遥控器转发信息：${JSON.stringify(req_msg)}`)
+        let _shell = `adb shell input keyevent ${req_msg.code}`;
+        process.exec(_shell, function (error, stdout, stderr) {
+          if (error !== null) {
+            logger.warn('exec error: ' + error);
+          };
+          logger.info(`stdout: ${stdout}`);
+          logger.info(`stderr: ${stderr}`);
+        });
+      } else {
+        if (!touch_ns) {
+          touch_ns = net.connect({
+            port: 1111
+          })
 
-      touch_ns.on('error', function () {
-        console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
-        process.exit(1)
-      })
-    }
-    var msg = JSON.parse(message);
-    var touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
-    console.log(touch_cmd);
-    touch_ns.write(touch_cmd);
+          touch_ns.on('error', function () {
+            console.error('Be sure to run `adb forward tcp:1111 localabstract:minitouch`')
+            process.exit(1)
+          })
+        }
+        let msg = JSON.parse(message);
+        let touch_cmd = 'd 0 ' + msg.x + ' ' + msg.y + ' 50\nc\nu 0\nc\n';
+        console.log(touch_cmd);
+        touch_ns.write(touch_cmd);
+      }
+      break;
+    case "stop_play":
+      //下发停止转码器任务
+      let task_id = single_media_tasks[`${req_msg.play_url}`];
+      logger.info(`下发停止点播任务：${task_id}`)
+      let stop_result = await stop_task(config.transcoder.host, config.transcoder.port, task_id);
+      if (stop_result.ret === 0) {
+        delete single_media_tasks[`${req_msg.play_url}`];
+      }
+      logger.info(`停止${req_msg.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`)
+      break;
+
+    default:
+      break;
   }
 }
 
