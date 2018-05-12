@@ -170,7 +170,7 @@ function on_open() {
 
 
 let touch_ns;
-function on_message() {
+function on_message(message) {
   console.log('---------> ' + message);
   let req_msg = JSON.parse(message);
   if (req_msg.code > 0) {
