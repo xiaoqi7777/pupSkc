@@ -21,13 +21,7 @@ function socket_io_server(server) {
     logger.info('clent socket connect')
 
     socket.on('login', (msg) => {
-      // logger.info(msg,typeof(msg),'------------')
-      // let params = JSON.parse(msg);
-      // if (params.name) {
-      //   socket['device_id'] = msg.name;
-      //   is_login = true;
-      // };
-      // if (is_login) {
+      logger.info(`client send event login --------------`)
       let data = {
         type: 'audth',
         data: {
@@ -41,6 +35,7 @@ function socket_io_server(server) {
         }
       }
       socket.emit('Message', data);
+      logger.info(`发送认证消息成功`)
       console.log('发送认证消息成功')
       // }
     });
