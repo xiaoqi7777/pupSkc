@@ -92,7 +92,8 @@ function socket_io_server(server) {
           let play_url = `${_output_address}/${_stream_name}`;
           single_media_tasks[`${play_url}`] = responce.task_id;
           logger.info(`点播播放地址:${play_url}`);
-          socket.emit('single_media', { 'play_url': play_url });
+          //发送播放地址
+          SOCKET.emit('single_media', { 'play_url': play_url });
         }
         //发送播放地址
         logger.info(`下发点播转码任务成功`);

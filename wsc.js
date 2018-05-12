@@ -212,7 +212,7 @@ async function on_message(message) {
       if (stop_result.ret === 0) {
         delete single_media_tasks[`${req_msg.play_url}`];
       }
-      logger.info(`停止${req_msg.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`)
+      logger.info(`停止${req_msg.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
       break;
 
     default:

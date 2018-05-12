@@ -15,7 +15,7 @@
     "host": "127.0.0.1",
     "port": 2030,
     "out_type": "rtmp",
-    "out_address": "rtmp://47.96.129.127"
+    "out_address": "rtmp://192.168.1.249"//rtmp://47.96.129.127
   },
   "cloud": {
     "remote_control_bind_port": 0,
