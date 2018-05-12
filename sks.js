@@ -72,15 +72,17 @@ function socket_io_server(server) {
         logger.info(`点播播放地址:${data}`);
         socket.emit('open_iframe');
         let single_media_play_url = JSON.parse(data);
-        let play_url = 'udp://' + single_media_play_url.mediaUrl.split('//')[1];
+        // let play_url = 'udp://' + single_media_play_url.mediaUrl.split('//')[1];
+        let play_url = single_media_play_url.mediaUrl;
         let task_json = config.task_json;
         task_json.input.url = play_url;
-        task_json.input.protocol = 'udp';
-        task_json.output.protocol = config.transcode.out_type;
+        // task_json.input.protocol = 'udp';
+        task_json.input.protocol = 'rtsp';
+        task_json.output.protocol = config.transcoder.out_type;
         let stream_random = random_signature_key(6);
         let _stream_name = md5(stream_random);
         let _output_address = config.transcoder.out_address + '/live';
-        task_json.detail.stream_name = _stream_name;
+        task_json.output.detail.stream_name = _stream_name;
         task_json.output.detail.stream_address = _output_address;
         task_json.output.protocol = config.transcoder.out_type;
         logger.info(`点播转码任务：${task_json}`)
