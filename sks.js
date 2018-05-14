@@ -71,7 +71,7 @@ function socket_io_server(server) {
         if (single_media_play_url.mediaCode.length > 8) {
           return;
         }
-        socket.emit('open_iframe');
+        SOCKET.emit('open_iframe');
         // let play_url = 'udp://' + single_media_play_url.mediaUrl.split('//')[1];
         let play_url = single_media_play_url.mediaUrl;
         let task_json = config.task_json;
