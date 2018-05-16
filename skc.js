@@ -5,6 +5,7 @@ const config = require('config');
 const exec = require('child_process').exec;
 const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
+const get_task_status = require('./lib/utils').get_task_status();
 const is_empty = require('./lib/utils').is_empty;
 const get_task_info = require('./lib/utils').get_task_info;
 const { version } = require('./version');
@@ -79,6 +80,13 @@ async function socket_io_client() {
       logger.info(`发送自动停止任务成功`);
     }
   })
+
+  socket.on('get_task_status', async () => {
+    //获取转码器上所有的任务状态
+    let result = await get_task_status();
+    socket.emit(`get_task_status_replay`,{'status':result});
+    logger.info(`发送点播任务详情成功`);
+  });
 
   //远程ssh
   socket.on("rsh", function (data) {
