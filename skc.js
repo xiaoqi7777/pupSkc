@@ -5,11 +5,11 @@ const config = require('config');
 const exec = require('child_process').exec;
 const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
-const get_task_status = require('./lib/utils').get_task_status();
 const is_empty = require('./lib/utils').is_empty;
 const get_task_info = require('./lib/utils').get_task_info;
 const { version } = require('./version');
 import { start_task, stop_task } from "./lib/transcoder.js";
+import{ get_task_status } from './lib/utils';
 
 import { IO } from "./sks"
 let serial_number;
