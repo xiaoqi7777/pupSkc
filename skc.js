@@ -83,6 +83,7 @@ async function socket_io_client() {
 
   socket.on('get_task_status', async () => {
     //获取转码器上所有的任务状态
+    logger.info(`开始查询点播任务状态`);
     let result = await get_task_status();
     socket.emit(`get_task_status_replay`,{'status':result});
     logger.info(`发送点播任务详情成功`);
