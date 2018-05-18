@@ -246,4 +246,4 @@ function on_rsh(rsh_req) {
   });
 };
 
-export { socket_io_client, skc_online, socket as SOCKET, serial_number, remote_data };
+export { socket_io_client, skc_online, socket as SOCKET, serial_number, remote_data, device_id };

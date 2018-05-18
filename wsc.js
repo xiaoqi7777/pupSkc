@@ -7,6 +7,7 @@ import root_logger from './logger';
 const logger = root_logger.child({ tag: 'wsc' });
 import { start_task, stop_task } from "./lib/transcoder.js";
 import { single_media_tasks } from './sks'
+import { device_id } from './skc'
 
 let wsc;
 let stream;
@@ -18,7 +19,7 @@ function on_open() {
   let res = {
     'cmd': 'login',
     'type': 'backend',
-    'device_id': 1
+    'device_id': device_id
   }
 
   wsc.send(JSON.stringify(res));
@@ -211,6 +212,8 @@ async function on_message(message) {
       let stop_result = await stop_task(config.transcoder.host, config.transcoder.port, task_id);
       if (stop_result.ret === 0) {
         delete single_media_tasks[`${req_msg.play_url}`];
+        wsc.send(JSON.stringify({'cmd':'stop_play_replay'}));
+        logger.info(`发送定制任务完成通知成功`);
       }
       logger.info(`停止${req_msg.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
       break;
