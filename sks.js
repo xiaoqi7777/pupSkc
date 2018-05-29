@@ -4,7 +4,7 @@ const logger = root_logger.child({ tag: "socket_s" });
 const config = require('config');
 import { SOCKET } from "./skc";
 import { start_task, stop_task } from "./lib/transcoder.js";
-import { random_signature_key } from "./lib/utils";
+import { random_signature_key, get_single_media_name } from "./lib/utils";
 const md5 = require('md5');
 
 
@@ -60,6 +60,7 @@ function socket_io_server(server) {
 
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
+      let name;
       SOCKET.emit('get_channel_list_reply', result);
       logger.info(`获取设备频道列表成功,${result.channels.length}`);
     });
@@ -70,13 +71,15 @@ function socket_io_server(server) {
         logger.info(`点播播放地址:${data}`);
         if (single_media_play_url.mediaCode.length > 8) {
           return;
+        };
+        if (single_media_play_url.EGP) {
+          logger.info(`收到页面地址：${single_media_play_url.EGP}`);
+          name = await get_single_media_name(single_media_play_url.EGP);
         }
-        SOCKET.emit('open_iframe');
-        // let play_url = 'udp://' + single_media_play_url.mediaUrl.split('//')[1];
+        // SOCKET.emit('open_iframe');
         let play_url = single_media_play_url.mediaUrl;
         let task_json = config.task_json;
         task_json.input.url = play_url;
-        // task_json.input.protocol = 'udp';
         task_json.input.protocol = 'rtsp';
         task_json.output.protocol = config.transcoder.out_type;
         let stream_random = random_signature_key(6);
@@ -93,7 +96,7 @@ function socket_io_server(server) {
           single_media_tasks[`${play_url}`] = responce.task_id;
           logger.info(`点播播放地址:${play_url}`);
           //发送播放地址
-          SOCKET.emit('single_media', { 'play_url': play_url });
+          SOCKET.emit('single_media', { 'play_url': play_url, 'name': name });
         }
         //发送播放地址
         logger.info(`下发点播转码任务成功`);
