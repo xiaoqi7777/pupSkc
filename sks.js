@@ -60,12 +60,12 @@ function socket_io_server(server) {
 
     socket.on('channelList', (data) => {
       let result = JSON.parse(data);
-      let name;
       SOCKET.emit('get_channel_list_reply', result);
       logger.info(`获取设备频道列表成功,${result.channels.length}`);
     });
 
     socket.on('SingleMedia', async (data) => {
+      let name;      
       try {
         let single_media_play_url = JSON.parse(data);
         logger.info(`点播播放地址:${data}`);
