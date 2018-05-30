@@ -2,7 +2,7 @@ let socket_io = require('socket.io');
 import root_logger from "./logger";
 const logger = root_logger.child({ tag: "socket_s" });
 const config = require('config');
-import { SOCKET } from "./skc";
+import { SOCKET, device_id } from "./skc";
 import { start_task, stop_task } from "./lib/transcoder.js";
 import { random_signature_key, get_single_media_name } from "./lib/utils";
 const md5 = require('md5');
@@ -65,7 +65,7 @@ function socket_io_server(server) {
     });
 
     socket.on('SingleMedia', async (data) => {
-      let name;      
+      let name;
       try {
         let single_media_play_url = JSON.parse(data);
         logger.info(`点播播放地址:${data}`);
@@ -96,7 +96,7 @@ function socket_io_server(server) {
           single_media_tasks[`${play_url}`] = responce.task_id;
           logger.info(`点播播放地址:${play_url}`);
           //发送播放地址
-          SOCKET.emit('single_media', { 'play_url': play_url, 'name': name });
+          SOCKET.emit('single_media', { 'play_url': play_url, 'name': name, 'device_id': device_id, task_id: responce.task_id });
         }
         //发送播放地址
         logger.info(`下发点播转码任务成功`);
