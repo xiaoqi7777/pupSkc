@@ -15,7 +15,7 @@ let stream;
 let is_ponged;
 let wsc_online = false;
 let serial_number;
-function on_open() {
+async function on_open() {
   logger.info('wsc connected')
   wsc.ping('', true, false);
   serial_number = await get_serial_number();
