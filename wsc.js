@@ -7,19 +7,22 @@ import root_logger from './logger';
 const logger = root_logger.child({ tag: 'wsc' });
 import { start_task, stop_task } from "./lib/transcoder.js";
 import { single_media_tasks } from './sks'
-import { device_id } from './skc'
+import { sleep_wait, get_device_number } from './lib/utils'
+
 
 let wsc;
 let stream;
 let is_ponged;
 let wsc_online = false;
+let serial_number;
 function on_open() {
-  logger.info('socket connected')
+  logger.info('wsc connected')
   wsc.ping('', true, false);
+  serial_number = await get_serial_number();
   let res = {
     'cmd': 'login',
     'type': 'backend',
-    'device_id': device_id
+    'serial_number': serial_number
   }
 
   wsc.send(JSON.stringify(res));
@@ -278,5 +281,19 @@ async function connect_server() {
   }
 }
 
+  async function get_serial_number() {
+    let result;
+    while (true) {
+      await sleep_wait(2);
+      result = await get_device_number();
+      if (result && result.autoconf.device.length === 12) {
+        break;
+      } else {
+        logger.warn('获取唯一串号失败');
+      };
+    };
+    serial_number = result.autoconf.device;
+    return serial_number;
+  }
 
 export { wsc, connect_server as connect_websocket_server, }
