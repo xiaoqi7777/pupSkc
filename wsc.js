@@ -244,7 +244,7 @@ function on_close() {
 let retry_interval = 1000;
 let ping_interval;
 async function connect_server() {
-  wsc = new WebSocketServer('ws://192.168.1.192:3002', 'minicap')
+  wsc = new WebSocketServer(config.ws.address, 'minicap')
 
   wsc.on('message', on_message);
   wsc.on('open', on_open);

@@ -28,6 +28,7 @@
     "ping_timeout": 15000
   },
   "ws": {
+    "address":"ws://47.96.129.127:3002",
     "heart_beat": 5000
   },
   "task_json": {
