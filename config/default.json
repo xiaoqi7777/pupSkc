@@ -15,7 +15,7 @@
     "host": "127.0.0.1",
     "port": 2030,
     "out_type": "rtmp",
-    "out_address": "rtmp://47.96.129.127"//rtmp://47.96.129.127
+    "out_address": "rtmp://47.96.129.127" //rtmp://47.96.129.127
   },
   "cloud": {
     "remote_control_bind_port": 0,
@@ -28,7 +28,7 @@
     "ping_timeout": 15000
   },
   "ws": {
-    "address":"ws://47.96.129.127:3002",
+    "address": "ws://47.96.129.127:3002",
     "heart_beat": 5000
   },
   "task_json": {
@@ -78,6 +78,12 @@
       "label": {
         "complex": []
       }
+    }
+  },
+  "pup": {
+    "url": "http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG",
+    "config": {
+      "isShow": false
     }
   }
 }

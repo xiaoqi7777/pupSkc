@@ -6,11 +6,17 @@ import { SOCKET, device_id } from "./skc";
 import { start_task, stop_task } from "./lib/transcoder.js";
 import { random_signature_key, get_single_media_name } from "./lib/utils";
 const md5 = require('md5');
-
+//爬虫对象
+const spider
 
 let io;
 let is_login = false;
 let single_media_tasks = {};
+
+//frame子对象
+let child;
+//加载页面后的解析对象，类$
+let page;
 
 
 function socket_io_server(server) {
@@ -18,6 +24,12 @@ function socket_io_server(server) {
     pingInterval: config.socket_io.ping_interval,
     pingTimeout: config.socket_io.ping_timeout,
   });
+
+  //实例化爬虫对象
+   spider = new Spider({ ...config.pup,
+    io: io
+  })
+  
 
   io.on('connection', function (socket) {
     logger.info('clent socket connect')
