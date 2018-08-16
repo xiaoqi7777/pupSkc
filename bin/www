@@ -32,7 +32,7 @@ server.on('listening', onListening);
 socket_io_server(server);
 require('../skc').socket_io_client();
 require('../lib/utils').sleep_wait(3)
-require('../wsc').connect_websocket_server();
+// require('../wsc').connect_websocket_server();
 
 /**
  * Normalize a port into a number, string, or false.

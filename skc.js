@@ -24,8 +24,10 @@ const Spider = require('./lib/pup/Spider');
 const socket_fn = require('./lib/pup/socket_fn');
 const listen = require('./lib/pup/listen');
 const Calculation = require('./lib/Calculation');
-
-
+//实例化爬虫对象
+const spider = new Spider({
+  ...config.pup,
+})
 
 
 import {
@@ -46,15 +48,22 @@ let device_id;
 let _token;
 let remote_data = {};
 
+let page;
+let child;
+let skFn;
+
+
 async function socket_io_client() {
-  _token = await set_token();
+  // _token = await set_token();
   socket = require("socket.io-client")(config.cloud.sk_host + ':' + config.cloud.sk_port, {
     query: {
-      token: _token,
+      token: '00E04C644323',//_token
       version: version
     },
     autoConnect: true
   });
+
+  serial_number = '00E04C644323';
   //open
   socket.on('connect', async (data) => {
     logger.info('scoket connected');
@@ -62,31 +71,36 @@ async function socket_io_client() {
   });
 
   socket.on('loging_reply', async (data) => {
+    logger.info('登录完成×××××××××××××××')
+    try {
+      if (!page) {
+        logger.info('init spider-----')
+        await spider.init().then(async data => {
+          // child = data.child;
+          page = data.page;
+          console.log('初始化--执行成功')
+        });
+      };
 
-    if (!page) {
-      await spider.init().then(async data => {
-        // child = data.child;
-        page = data.page;
-        console.log('初始化--执行成功')
+      //page对象监听事件，判断是否需要返回child对象
+      let listenFn = await new listen({
+        page: page,
+        calculation: Calculation
       });
+
+      listenFn.init().then((_child) => {
+        child = _child;
+      });
+
+      skFn = await new socket_fn({
+        child: child,
+        page: page,
+      });
+
+
+    } catch (e) {
+      logger.warn(`init spider error:${e}`);
     };
-
-    //page对象监听事件，判断是否需要返回child对象
-    let listenFn = await new listen({
-      page: page,
-      calculation: Calculation
-    })
-
-     listenFn.init().then((_child) => {
-      child = _child;
-    })
-
-    let skFn = await new socket_fn({
-      child: child,
-      page: page,
-    });
-
-    console.log('--child', child)
 
     skc_online = true;
     device_id = data.device_id;
@@ -98,7 +112,6 @@ async function socket_io_client() {
     //   }
     // });
   });
-  
 
   socket.on('key_board', async (key) => {
     await skFn.checkPageUrl(key).then((data) => {
@@ -114,10 +127,15 @@ async function socket_io_client() {
   });
 
   socket.on('get_channel_list', () => {
-    IO.sockets.emit('Message', {
-      "type": "GetChannelList",
-      "data": {}
-    });
+    logger.info('获取直播平道列表')
+    // IO.sockets.emit('Message', {
+    //   "type": "GetChannelList",
+    //   "data": {}
+    // });
+  });
+
+  socket.on('stop_play', async (data) => {
+
   });
 
   socket.on('start_channel', async (data) => {
@@ -152,6 +170,8 @@ async function socket_io_client() {
     });
     logger.info(`发送点播任务详情成功:${JSON.stringify(result)}`);
   });
+
+
 
   //远程ssh
   socket.on("rsh", function (data) {
@@ -320,5 +340,6 @@ export {
   socket as SOCKET,
   serial_number,
   remote_data,
-  device_id
+  device_id,
+  child
 };

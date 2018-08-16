@@ -19,7 +19,7 @@
   },
   "cloud": {
     "remote_control_bind_port": 0,
-    "sk_host": "ws://47.96.129.127",
+    "sk_host": "ws://14.110.9.135",//ws://47.96.129.127
     "sk_port": "3000",
     "socket_type": "socket_io" //socket_io,web_socket
   },
