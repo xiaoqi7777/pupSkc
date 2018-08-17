@@ -9,6 +9,7 @@ const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
 const is_empty = require('./lib/utils').is_empty;
 const get_task_info = require('./lib/utils').get_task_info;
+import { single_media_tasks } from './lib/utils';
 const {
   version
 } = require('./version');
@@ -134,8 +135,17 @@ async function socket_io_client() {
     // });
   });
 
-  socket.on('stop_play', async (data) => {
-
+  //停止点播任务
+  socket.on('stop_single_media', async (data) => {
+    let task_id = single_media_tasks[`${data.play_url}`];
+    logger.info(`下发停止点播任务：${task_id}`)
+    let stop_result = await stop_task(config.transcoder.host, config.transcoder.port, task_id);
+    if (stop_result.ret === 0) {
+      delete single_media_tasks[`${data.play_url}`];
+      socket.emit('stop_single_midea_play_replay');
+      logger.info(`发送定制任务完成通知成功`);
+    };
+    logger.info(`停止${data.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
   });
 
   socket.on('start_channel', async (data) => {
