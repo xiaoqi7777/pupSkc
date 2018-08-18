@@ -52,6 +52,7 @@ let remote_data = {};
 let page;
 let child;
 let skFn;
+let browser;
 
 
 async function socket_io_client() {
@@ -79,6 +80,8 @@ async function socket_io_client() {
         await spider.init().then(async data => {
           // child = data.child;
           page = data.page;
+          browser = data.browser;
+
           console.log('初始化--执行成功')
         });
       };
@@ -97,7 +100,6 @@ async function socket_io_client() {
         child: child,
         page: page,
       });
-
 
     } catch (e) {
       logger.warn(`init spider error:${e}`);
@@ -148,16 +150,17 @@ async function socket_io_client() {
     logger.info(`停止${data.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
   });
 
+
   socket.on('start_channel', async (data) => {
     let responce = await start_task(config.transcoder.host, config.transcoder.port, data.task_json);
     socket.emit('start_channel_reply', responce);
-  })
+  });
 
   socket.on('stop_channel', async (data) => {
     logger.info(`停止任务：${data.task_id}`)
     let responce = await stop_task(config.transcoder.host, config.transcoder.port, data.task_id);
     socket.emit('stop_channel_reply', responce);
-  })
+  });
 
   socket.on('sync_task_info', async (data) => {
     let info = await get_task_info(data.task_id);
@@ -237,6 +240,9 @@ async function socket_io_client() {
     retry_interval += retry_interval;
     if (retry_interval > 16) {
       retry_interval = 2;
+    };
+    if (browser) {
+      browser.close();
     }
     release_term();
   });
