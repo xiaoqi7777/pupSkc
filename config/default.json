@@ -12,14 +12,14 @@
     "host": "192.168.1.81"
   },
   "transcoder": {
-    "host": "127.0.0.1",
+    "host": "127.0.0.0",
     "port": 2030,
     "out_type": "rtmp",
     "out_address": "rtmp://47.96.129.127" //rtmp://47.96.129.127
   },
   "cloud": {
     "remote_control_bind_port": 0,
-    "sk_host": "ws://14.110.9.135",//ws://47.96.129.127
+    "sk_host": "ws://47.96.129.127",//ws://47.96.129.127
     "sk_port": "3000",
     "socket_type": "socket_io" //socket_io,web_socket
   },
@@ -82,8 +82,9 @@
   },
   "pup": {
     "url": "http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG",
+    "chrome_path": "../node_modules/puppeteer/.local-chromium/linux-579032/chrome-linux/chrome",
     "config": {
-      "isShow": false
+      "isShow": true
     }
   }
 }
