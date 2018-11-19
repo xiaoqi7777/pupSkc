@@ -53,6 +53,10 @@ let page;
 let child;
 let skFn;
 let browser;
+let listenFn;
+let listenInte;
+let IsBack = null;
+let ischangeIframe;
 
 
 async function socket_io_client() {
@@ -87,15 +91,19 @@ async function socket_io_client() {
       };
 
       //page对象监听事件，判断是否需要返回child对象
-      let listenFn = await new listen({
+      listenFn = await new listen({
         page: page,
         calculation: Calculation
       });
 
-      listenFn.init().then((_child) => {
-        child = _child;
-      });
-
+      listenInte = await listenFn.init()
+      listenInte.on('send',(data)=>{
+        child = data
+      })	
+      listenInte.on('firstPage',(data)=>{
+        ischangeIframe = data
+      })
+      
       skFn = await new socket_fn({
         child: child,
         page: page,
@@ -117,11 +125,13 @@ async function socket_io_client() {
   });
 
   socket.on('key_board', async (key) => {
-    await skFn.checkPageUrl(key).then((data) => {
-      socket.emit('img', {
-        value: data
-      })
-    })
+    if(key.value === 'back' && ischangeIframe === 'on'){
+			return
+		}
+    let imgAdress = await skFn.checkPageUrl(key, child,listenInte)
+
+    socket.emit('img', {value: imgAdress})
+
   });
 
 
