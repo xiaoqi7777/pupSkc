@@ -84,7 +84,7 @@
     "url": "http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG",
     "chrome_path": "../node_modules/puppeteer/.local-chromium/linux-579032/chrome-linux/chrome",
     "config": {
-      "isShow": true
+      "isShow": false
     }
   }
 }
