@@ -26,9 +26,7 @@ const socket_fn = require('./lib/pup/socket_fn');
 const listen = require('./lib/pup/listen');
 const Calculation = require('./lib/Calculation');
 //实例化爬虫对象
-const spider = new Spider({
-  ...config.pup,
-})
+let spider;
 
 
 import {
@@ -49,7 +47,7 @@ let device_id;
 let _token;
 let remote_data = {};
 
-let page;
+let page=false;
 let child;
 let skFn;
 let browser;
@@ -57,7 +55,7 @@ let listenFn;
 let listenInte;
 let IsBack = null;
 let ischangeIframe;
-
+let sg;
 
 async function socket_io_client() {
   // _token = await set_token();
@@ -80,22 +78,21 @@ async function socket_io_client() {
     logger.info('登录完成×××××××××××××××')
     try {
       if (!page) {
-        logger.info('init spider-----')
-        await spider.init().then(async data => {
-          // child = data.child;
-          page = data.page;
-          browser = data.browser;
-
-          console.log('初始化--执行成功')
+	console.log('--------------')
+        logger.info('init spider-----8888888888888888');
+	 spider =  new Spider({
+          ...config.pup,
+	  io:socket
         });
+        page =  await spider.init()
+        
       };
-
       //page对象监听事件，判断是否需要返回child对象
       listenFn = await new listen({
         page: page,
         calculation: Calculation
       });
-
+      console.log('--------**')
       listenInte = await listenFn.init()
       listenInte.on('send',(data)=>{
         child = data
@@ -361,6 +358,7 @@ function on_rsh(rsh_req) {
 };
 
 export {
+  socket as IO,
   socket_io_client,
   skc_online,
   socket as SOCKET,
