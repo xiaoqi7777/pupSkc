@@ -18,7 +18,8 @@ import {
   stop_task
 } from "./lib/transcoder.js";
 import {
-  get_task_status
+  get_task_status,
+  get_single_task_play_status
 } from './lib/utils';
 
 const Spider = require('./lib/pup/Spider');
@@ -78,7 +79,6 @@ async function socket_io_client() {
     logger.info('登录完成×××××××××××××××')
     try {
       if (!page) {
-	console.log('--------------')
         logger.info('init spider-----8888888888888888');
 	 spider =  new Spider({
           ...config.pup,
@@ -92,7 +92,6 @@ async function socket_io_client() {
         page: page,
         calculation: Calculation
       });
-      console.log('--------**')
       listenInte = await listenFn.init()
       listenInte.on('send',(data)=>{
         child = data
@@ -122,6 +121,8 @@ async function socket_io_client() {
   });
 
   socket.on('key_board', async (key) => {
+	console.log('-----index---',key.value,ischangeIframe)
+    listenInte.emit('isBack',key.value)
     if(key.value === 'back' && ischangeIframe === 'on'){
 			return
 		}
@@ -151,7 +152,7 @@ async function socket_io_client() {
     let stop_result = await stop_task(config.transcoder.host, config.transcoder.port, task_id);
     if (stop_result.ret === 0) {
       delete single_media_tasks[`${data.play_url}`];
-      socket.emit('stop_single_midea_play_replay');
+      socket.emit('stop_single_midea_play_replay', { 'task_id': task_id });
       logger.info(`发送定制任务完成通知成功`);
     };
     logger.info(`停止${data.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
@@ -191,7 +192,20 @@ async function socket_io_client() {
     logger.info(`发送点播任务详情成功:${JSON.stringify(result)}`);
   });
 
-
+  socket.on('get_single_task_play_status', async (data) => {
+    //获取转码器当前任务状态
+    logger.info(`查询当前设备点播任务播放状态`);
+    let result;
+    if (data.type === 'live') {
+      result = await get_single_task_play_status(data.task_id, data.play_url);
+    } else {
+      result = await get_task_status(data.task_id);
+    }
+    socket.emit('get_single_task_play_status_reply', {
+      'status': result
+    });
+    logger.info(`当前设备点播详情结果:${JSON.stringify(result)}`);
+  });
 
   //远程ssh
   socket.on("rsh", function (data) {

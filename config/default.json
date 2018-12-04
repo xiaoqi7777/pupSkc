@@ -12,7 +12,7 @@
     "host": "192.168.1.81"
   },
   "transcoder": {
-    "host": "127.0.0.0",
+    "host": "127.0.0.1",
     "port": 2030,
     "out_type": "rtmp",
     "out_address": "rtmp://47.96.129.127" //rtmp://47.96.129.127
