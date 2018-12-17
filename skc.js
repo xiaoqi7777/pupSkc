@@ -9,7 +9,9 @@ const get_device_number = require('./lib/utils').get_device_number;
 const sleep_wait = require('./lib/utils').sleep_wait;
 const is_empty = require('./lib/utils').is_empty;
 const get_task_info = require('./lib/utils').get_task_info;
-import { single_media_tasks } from './lib/utils';
+import {
+  single_media_tasks
+} from './lib/utils';
 const {
   version
 } = require('./version');
@@ -22,9 +24,10 @@ import {
   get_single_task_play_status
 } from './lib/utils';
 
-const Spider = require('./lib/pup/Spider');
-const socket_fn = require('./lib/pup/socket_fn');
-const listen = require('./lib/pup/listen');
+const IptvAuth = require('./lib/pup/iptvAuth');
+const IptvRemoteControl = require('./lib/pup/iptvRemoteControl');
+
+const Listen = require('./lib/pup/listen');
 const Calculation = require('./lib/Calculation');
 //实例化爬虫对象
 let spider;
@@ -48,21 +51,21 @@ let device_id;
 let _token;
 let remote_data = {};
 
-let page=false;
+let page = false;
 let child;
 let skFn;
 let browser;
-let listenFn;
-let listenInte;
+let listenObj;
+let listenResponse;
 let IsBack = null;
 let ischangeIframe;
-let jumpIo;
+let pageEventEmitter;
 
 async function socket_io_client() {
   // _token = await set_token();
   socket = require("socket.io-client")(config.cloud.sk_host + ':' + config.cloud.sk_port, {
     query: {
-      token: '00E04C644323',//_token
+      token: '00E04C644323', //_token
       version: version
     },
     autoConnect: true
@@ -80,28 +83,29 @@ async function socket_io_client() {
     try {
       if (!page) {
         logger.info('init spider-----8888888888888888');
-	 spider  =  new Spider({
-            ...config.pup,
-	    io:socket
-          });
-        let initObj =  await spider.init()
- 	page = initObj.spiderObj
-        jumpIo = initObj.jumpObj
+        spider = new IptvAuth({
+          ...config.pup,
+          io: socket
+        });
+        let data = await spider.init()
+        page = data.pageData
+        pageEventEmitter = data.EventEmitter
       };
       //page对象监听事件，判断是否需要返回child对象
-      listenFn = await new listen({
+      listenObj = await new Listen({
         page: page,
         calculation: Calculation
       });
-      listenInte = await listenFn.init()
-      listenInte.on('send',(data)=>{
+
+      listenResponse = await listenObj.init()
+      listenResponse.on('send', (data) => {
         child = data
-      })	
-      listenInte.on('firstPage',(data)=>{
+      })
+      listenResponse.on('firstPage', (data) => {
         ischangeIframe = data
       })
-   //   socket.emit('isBack',{isBack:ischangeIframe})
-      skFn = await new socket_fn({
+      //   socket.emit('isBack',{isBack:ischangeIframe})
+      skFn = await new IptvRemoteControl({
         child: child,
         page: page,
       });
@@ -114,24 +118,21 @@ async function socket_io_client() {
     device_id = data.device_id;
     remote_password = data.remote_password;
     logger.info(`设备登录成功,修改连接状态 ${skc_online}`);
-    // IO.sockets.emit('Message', {
-    //   "type": "GetChannelList",
-    //   "data": {
-    //   }
-    // });
+
   });
 
   socket.on('key_board', async (key) => {
-	console.log('-----index---',key.value,ischangeIframe)
-    listenInte.emit('isBack',key.value)
-    jumpIo.emit('nodeIsBack',ischangeIframe)
-    //socket.emit('isBack',{isBack:ischangeIframe})
-    if(key.value === 'back' && ischangeIframe === 'on'){
-			return
-		}
-    let imgAdress = await skFn.checkPageUrl(key, child,listenInte)
+    listenResponse.emit('isBack', key.value)
+    pageEventEmitter.emit('nodeIsBack', ischangeIframe)
+    if (key.value === 'back' && ischangeIframe === 'on') {
+      return
+    }
+    let imgAdress = await skFn.checkPageUrl(key, child, listenResponse)
 
-    socket.emit('img', {value: imgAdress,isBack:ischangeIframe})
+    socket.emit('img', {
+      value: imgAdress,
+      isBack: ischangeIframe
+    })
 
   });
 
@@ -142,10 +143,6 @@ async function socket_io_client() {
 
   socket.on('get_channel_list', () => {
     logger.info('获取直播平道列表')
-    // IO.sockets.emit('Message', {
-    //   "type": "GetChannelList",
-    //   "data": {}
-    // });
   });
 
   //停止点播任务
@@ -155,7 +152,9 @@ async function socket_io_client() {
     let stop_result = await stop_task(config.transcoder.host, config.transcoder.port, task_id);
     if (stop_result.ret === 0) {
       delete single_media_tasks[`${data.play_url}`];
-      socket.emit('stop_single_midea_play_replay', { 'task_id': task_id });
+      socket.emit('stop_single_midea_play_replay', {
+        'task_id': task_id
+      });
       logger.info(`发送定制任务完成通知成功`);
     };
     logger.info(`停止${data.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
@@ -174,13 +173,13 @@ async function socket_io_client() {
   });
 
   socket.on('sync_task_info', async (data) => {
-    if(data && data.task_id){ 
+    if (data && data.task_id) {
       let info = await get_task_info(data.task_id);
       if (info.task_id) {
         socket.emit('sync_task_info_reply', info);
       } else {
-         socket.emit('task_auto_stop', {
-           'task_id': data.task_id
+        socket.emit('task_auto_stop', {
+          'task_id': data.task_id
         });
         logger.info(`发送自动停止任务成功`);
       }
