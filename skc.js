@@ -56,7 +56,7 @@ let listenFn;
 let listenInte;
 let IsBack = null;
 let ischangeIframe;
-let sg;
+let jumpIo;
 
 async function socket_io_client() {
   // _token = await set_token();
@@ -80,12 +80,13 @@ async function socket_io_client() {
     try {
       if (!page) {
         logger.info('init spider-----8888888888888888');
-	 spider =  new Spider({
-          ...config.pup,
-	  io:socket
-        });
-        page =  await spider.init()
-        
+	 spider  =  new Spider({
+            ...config.pup,
+	    io:socket
+          });
+        let initObj =  await spider.init()
+ 	page = initObj.spiderObj
+        jumpIo = initObj.jumpObj
       };
       //page对象监听事件，判断是否需要返回child对象
       listenFn = await new listen({
@@ -99,7 +100,7 @@ async function socket_io_client() {
       listenInte.on('firstPage',(data)=>{
         ischangeIframe = data
       })
-      
+   //   socket.emit('isBack',{isBack:ischangeIframe})
       skFn = await new socket_fn({
         child: child,
         page: page,
@@ -123,12 +124,14 @@ async function socket_io_client() {
   socket.on('key_board', async (key) => {
 	console.log('-----index---',key.value,ischangeIframe)
     listenInte.emit('isBack',key.value)
+    jumpIo.emit('nodeIsBack',ischangeIframe)
+    //socket.emit('isBack',{isBack:ischangeIframe})
     if(key.value === 'back' && ischangeIframe === 'on'){
 			return
 		}
     let imgAdress = await skFn.checkPageUrl(key, child,listenInte)
 
-    socket.emit('img', {value: imgAdress})
+    socket.emit('img', {value: imgAdress,isBack:ischangeIframe})
 
   });
 
@@ -171,14 +174,16 @@ async function socket_io_client() {
   });
 
   socket.on('sync_task_info', async (data) => {
-    let info = await get_task_info(data.task_id);
-    if (info.task_id) {
-      socket.emit('sync_task_info_reply', info);
-    } else {
-      socket.emit('task_auto_stop', {
-        'task_id': data.task_id
-      });
-      logger.info(`发送自动停止任务成功`);
+    if(data && data.task_id){ 
+      let info = await get_task_info(data.task_id);
+      if (info.task_id) {
+        socket.emit('sync_task_info_reply', info);
+      } else {
+         socket.emit('task_auto_stop', {
+           'task_id': data.task_id
+        });
+        logger.info(`发送自动停止任务成功`);
+      }
     }
   })
 
