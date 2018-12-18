@@ -27,7 +27,7 @@ import {
 const IptvAuth = require('./lib/pup/iptvAuth');
 const IptvRemoteControl = require('./lib/pup/iptvRemoteControl');
 
-const Listen = require('./lib/pup/listen');
+const Listen = require('./lib/pup/listenResponse');
 const Calculation = require('./lib/Calculation');
 //实例化爬虫对象
 let spider;
@@ -74,6 +74,7 @@ async function socket_io_client() {
   serial_number = '00E04C644323';
   //open
   socket.on('connect', async (data) => {
+	console.log('---------------')
     logger.info('scoket connected');
     socket.emit('login');
   });
