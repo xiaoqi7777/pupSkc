@@ -17,5 +17,5 @@ function make_logger(app_name) {
   return logger;
 }
 
-const logger = make_logger('IPTV');
+const logger = make_logger('SPIDERIPTV');
 export default logger;

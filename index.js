@@ -1,79 +1,52 @@
-const Spider = require('./src/class/Spider');
-const config = require('./src/config/config');
-const socket_fn = require('./src/class/socket_fn');
-const Calculation = require('./src/modify/Calculation');
+const IptvMocker = require('./lib/pup/iptvMocker2'); 
+const socketIo = require('socket.io'); 
+import {vodOnResponse,vodOnLoad}from './lib/spiderAuto/vodPage'
+const vodAuto = require('./lib/spiderAuto/vodPageAuto'); 
 
-const listen = require('./src/climbPlayUrl/listen');
-const ClimPlayUrl = require('./src/climbPlayUrl')
+// import root_logger from "./logger";
+// const logger = root_logger.child({
+//   tag: "spiderIptvMove"
+// });
 
-const koa = require('koa');
-const Router = require('koa-router');
-const http = require('http');
-const socketIo = require('socket.io');
-
-const app = new koa();
-const server = http.createServer(app.callback());
-const io = socketIo(server);
-const router = new Router();
-const spider = new Spider({
-	...config,
-	io: io
+const iptvMock = new IptvMocker( {
+	url:'http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG',
+	headless:false, 
+	io:null
 })
 
-let child;
-let page;
-let listenFn;
-let listenInte;
-let IsBack = null;
-let testFn;
-let pageData
-let ischangeIframe;
+// const sk_host ="ws://47.96.129.127"
+const sk_host ="ws://192.168.1.165"
+const sk_port = "3000"
+const version = "1.0.0-version_fix"
+const clientSocket = require("socket.io-client")(sk_host + ':' + sk_port, {
+	query: {
+		token: '00E04C644323', //_token
+		version: version
+	},
+	autoConnect: true
+});
 
-let climPlayUrl;
 
-	async function init(){
-		console.log('index.js-connection 连接成功')
-    let data  = await spider.init()
-    pageData = data.pageData
-    testFn = data.testFn
+async function main() {
+	let iptv = await iptvMock.init(); 
 
-    page = pageData.page
+	// clientSocket.on('connect',data=>console.log(`---success---${data}`))
+	// clientSocket.on('error',data=>console.log(`---error---${data}`))
+	// clientSocket.on('disconnect',data=>console.log(`---disconnect---${data}`))
 
-		//page对象监听事件，判断是否需要返回child对象
-		listenFn = await new listen({
-								page: page,
-								calculation: Calculation
-							})
-		listenInte = await listenFn.init()
-		listenInte.on('send',(data)=>{
-			child = data
-    })	
-    console.log('-----------------------------')
-    
-		// 初始化的时候 就传入listenInte实例 在里面做监听
-		climPlayUrl = await new ClimPlayUrl({
-			page,
-			listenInte
-    })
-    console.log('-----------------------------')
-		await page.waitFor(1000);
-    console.log('-----++++++++++++++++++++++++++')
-    
-		await page.waitFor(9000);
-    console.log('+++++++++++++++++++++++++++++++')
-    try {
-      await	climPlayUrl.checkPageUrl(child,listenInte)
-    } catch (error) {
-      console.log('error',error)
-    }
-			
+	await iptv.auth(); 
+	//await iptv.waitFor(9000);
+	await iptv.moveRight(7); 
+	await iptv.moveUp(1); 
+	
+	iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse); 
+	iptv.addPageProcessor(/iptvepg\/frame50\/get_vod_column.jsp\?columnId\=/, null, vodAuto.vodLevel1Response); 
+	await iptv.pressOkKey(); 
+	await iptv.waitFor(2000); 
 
-	}
-	init()
-//路由配置
-router.get('/', (x, next) => {
-	x.body = '123'
-})
+}
 
-app.use(router.routes(), router.allowedMethods())
-server.listen(3000, '0.0.0.0')
+main(); 
+
+
+export { clientSocket}

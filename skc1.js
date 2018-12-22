@@ -12,9 +12,9 @@ const get_task_info = require('./lib/utils').get_task_info;
 import {
   single_media_tasks
 } from './lib/utils';
-// const {
-//   version
-// } = require('./version');
+const {
+  version
+} = require('./version');
 import {
   start_task,
   stop_task
@@ -24,17 +24,14 @@ import {
   get_single_task_play_status
 } from './lib/utils';
 
+const IptvAuth = require('./lib/pup/iptvAuth');
+const IptvRemoteControl = require('./lib/pup/iptvRemoteControl');
 
-import {
-  preventBack,
-  getplayName,
-  getVodName,
-  getPlayUrl,
-  exchangeForUrl,
-  isBackErrorProcessor
-} from './lib/pup/IptvRemoteControl';
+const Listen = require('./lib/pup/listenResponse');
+const Calculation = require('./lib/Calculation');
+//实例化爬虫对象
+let spider;
 
-import {vodOnLoad, vodOnResponse} from './lib/spiderAuto/vodPage';
 
 import {
   IO
@@ -43,8 +40,8 @@ let serial_number;
 let skc_online = false;
 let terms = {};
 let remote_password;
-// let remote_control_server_host;
-// let remote_control_server_port;
+let remote_control_server_host;
+let remote_control_server_port;
 
 //断开连接后重试间隔
 let retry_interval = 2;
@@ -54,20 +51,19 @@ let device_id;
 let _token;
 let remote_data = {};
 
-let iptv = null;
-const IptvMocker = require('./lib/pup/iptvMocker2');
-const iptvMock = new IptvMocker({
-  url: 'http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG',
-  headless: false,
-  io: null
-})
-const sk_host = "ws://192.168.1.165"
-const sk_port = "3000"
-const version = "1.0.0-version_fix"
+let page = false;
+let child;
+let skFn;
+let browser;
+let listenObj;
+let listenResponse;
+let IsBack = null;
+let ischangeIframe;
+let pageEventEmitter;
 
 async function socket_io_client() {
   // _token = await set_token();
-  socket = require("socket.io-client")(sk_host + ':' + sk_port, {
+  socket = require("socket.io-client")(config.cloud.sk_host + ':' + config.cloud.sk_port, {
     query: {
       token: '00E04C644323', //_token
       version: version
@@ -78,8 +74,7 @@ async function socket_io_client() {
   serial_number = '00E04C644323';
   //open
   socket.on('connect', async (data) => {
-    iptv = await iptvMock.init();
-    await iptv.auth();
+	console.log('---------------')
     logger.info('scoket connected');
     socket.emit('login');
   });
@@ -87,61 +82,34 @@ async function socket_io_client() {
   socket.on('loging_reply', async (data) => {
     logger.info('登录完成×××××××××××××××')
     try {
+      if (!page) {
+        logger.info('init spider-----8888888888888888');
+        spider = new IptvAuth({
+          ...config.pup,
+          io: socket
+        });
+        let data = await spider.init()
+        page = data.pageData
+        pageEventEmitter = data.EventEmitter
+      };
+      //page对象监听事件，判断是否需要返回child对象
+      listenObj = await new Listen({
+        page: page,
+        calculation: Calculation
+      });
 
-      // 一直发送图片
-      // let emitImg = {
-      //   value:()
-      // }
-      let img ;
-      setInterval(()=>{
-        img = iptv.getScreenshot()
-        socket.emit('img',{value:img})
-      },1000)
-
-      socket.emit('get_channel_list_reply',{
-        channels:iptv.getChannelList()
+      listenResponse = await listenObj.init()
+      listenResponse.on('send', (data) => {
+        child = data
       })
-      
-
-      //监视按键
-      socket.on('key_board',async(key)=>{
-        switch(key.value){
-          case 'shang':
-            iptv.moveUp(1)
-          break;
-          case 'xia':
-            iptv.moveDown(1)
-          break;
-          case 'zuo':
-           iptv.moveLeft(1)
-          break;
-          case 'you':
-           iptv.moveRight(1)
-          break;
-          case 'enter':
-            iptv.pressOkKey(1)
-          break;
-          case 'back':
-            iptv.goBack()
-          break;
-        }
+      listenResponse.on('firstPage', (data) => {
+        ischangeIframe = data
       })
-
-      // 增加普通按钮
-      iptv.addPageProcessor(/frame50\/vod_portal.jsp$/,null,vodOnResponse)
-      // 首页阻止返回
-      iptv.addPageProcessor(/bg\_index\_club\_new2/,null,preventBack)
-      // 获取普通电视 --电影名字
-      iptv.addPageProcessor(/detail\_type\/movie\/detail\_code/,null,getplayName)
-      // 获取点播 --电影名字
-      iptv.addPageProcessor(/get\_vod\_info/,null,getVodName)
-      // 获取播放地址
-      iptv.addPageProcessor(/get\_vod\_url\.jsp/,null,getPlayUrl)
-      // 点击播放时候 换取播放地址
-      iptv.addPageProcessor(/frame50\/ad_play.jsp\?adindex\=1&adcount\=/,null,exchangeForUrl)
-      // 返回遇到错误的处理
-      iptv.addPageProcessor(/5CYII\=/,null,isBackErrorProcessor)
-
+      //   socket.emit('isBack',{isBack:ischangeIframe})
+      skFn = await new IptvRemoteControl({
+        child: child,
+        page: page,
+      });
 
     } catch (e) {
       logger.warn(`init spider error:${e}`);
@@ -154,20 +122,20 @@ async function socket_io_client() {
 
   });
 
-  // socket.on('key_board', async (key) => {
-  //   listenResponse.emit('isBack', key.value)
-  //   pageEventEmitter.emit('nodeIsBack', ischangeIframe)
-  //   if (key.value === 'back' && ischangeIframe === 'on') {
-  //     return
-  //   }
-  //   let imgAdress = await skFn.checkPageUrl(key, child, listenResponse)
+  socket.on('key_board', async (key) => {
+    listenResponse.emit('isBack', key.value)
+    pageEventEmitter.emit('nodeIsBack', ischangeIframe)
+    if (key.value === 'back' && ischangeIframe === 'on') {
+      return
+    }
+    let imgAdress = await skFn.checkPageUrl(key, child, listenResponse)
 
-  //   socket.emit('img', {
-  //     value: imgAdress,
-  //     isBack: ischangeIframe
-  //   })
+    socket.emit('img', {
+      value: imgAdress,
+      isBack: ischangeIframe
+    })
 
-  // });
+  });
 
 
   socket.on('not found', async () => {
@@ -415,5 +383,6 @@ export {
   socket as SOCKET,
   serial_number,
   remote_data,
-  device_id
+  device_id,
+  child
 };
