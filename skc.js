@@ -31,10 +31,14 @@ import {
   getVodName,
   getPlayUrl,
   exchangeForUrl,
-  isBackErrorProcessor
+  isBackErrorProcessor,
+  demandExchangeForUrl
 } from './lib/pup/IptvRemoteControl';
 
-import {vodOnLoad, vodOnResponse} from './lib/spiderAuto/vodPage';
+import {
+  vodOnLoad,
+  vodOnResponse
+} from './lib/spiderAuto/vodPage';
 
 import {
   IO
@@ -61,7 +65,9 @@ const iptvMock = new IptvMocker({
   headless: false,
   io: null
 })
-const sk_host = "ws://192.168.1.165"
+// const sk_host = "ws://192.168.1.165" 
+const sk_host = "ws://47.96.129.127" 
+
 const sk_port = "3000"
 const version = "1.0.0-version_fix"
 
@@ -92,55 +98,62 @@ async function socket_io_client() {
       // let emitImg = {
       //   value:()
       // }
-      let img ;
-      setInterval(()=>{
+      let img;
+      setInterval(() => {
         img = iptv.getScreenshot()
-        socket.emit('img',{value:img})
-      },1000)
+        console.log('emit++img')
+        socket.emit('img', {
+          value: img
+        })
+      }, 1000)
 
-      socket.emit('get_channel_list_reply',{
-        channels:iptv.getChannelList()
+      socket.emit('get_channel_list_reply', {
+        channels: iptv.getChannelList()
       })
-      
+
+      socket.on('get_play_url',async(data)=>{
+        console.log('get_play_url',data)
+        demandExchangeForUrl(iptv,data)
+      })
 
       //监视按键
-      socket.on('key_board',async(key)=>{
-        switch(key.value){
+      socket.on('key_board', async (key) => {
+        switch (key.value) {
           case 'shang':
             iptv.moveUp(1)
-          break;
+            break;
           case 'xia':
             iptv.moveDown(1)
-          break;
+            break;
           case 'zuo':
-           iptv.moveLeft(1)
-          break;
+            iptv.moveLeft(1)
+            break;
           case 'you':
-           iptv.moveRight(1)
-          break;
+            iptv.moveRight(1)
+            break;
           case 'enter':
             iptv.pressOkKey(1)
-          break;
+            break;
           case 'back':
             iptv.goBack()
-          break;
+            break;
         }
       })
 
       // 增加普通按钮
-      iptv.addPageProcessor(/frame50\/vod_portal.jsp$/,null,vodOnResponse)
+      iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse)
       // 首页阻止返回
-      iptv.addPageProcessor(/bg\_index\_club\_new2/,null,preventBack)
+      iptv.addPageProcessor(/bg\_index\_club\_new2/, null, preventBack)
       // 获取普通电视 --电影名字
-      iptv.addPageProcessor(/detail\_type\/movie\/detail\_code/,null,getplayName)
+      iptv.addPageProcessor(/detail\_type\/movie\/detail\_code/, null, getplayName)
       // 获取点播 --电影名字
-      iptv.addPageProcessor(/get\_vod\_info/,null,getVodName)
+      iptv.addPageProcessor(/get\_vod\_info/, null, getVodName)
       // 获取播放地址
-      iptv.addPageProcessor(/get\_vod\_url\.jsp/,null,getPlayUrl)
+      iptv.addPageProcessor(/get\_vod\_url\.jsp/, null, getPlayUrl)
       // 点击播放时候 换取播放地址
-      iptv.addPageProcessor(/frame50\/ad_play.jsp\?adindex\=1&adcount\=/,null,exchangeForUrl)
+      iptv.addPageProcessor(/frame50\/ad_play.jsp\?adindex\=1&adcount\=/, null, exchangeForUrl)
       // 返回遇到错误的处理
-      iptv.addPageProcessor(/5CYII\=/,null,isBackErrorProcessor)
+      iptv.addPageProcessor(/5CYII\=/, null, isBackErrorProcessor)
 
 
     } catch (e) {
@@ -299,9 +312,7 @@ async function socket_io_client() {
     if (retry_interval > 16) {
       retry_interval = 2;
     };
-    if (browser) {
-      browser.close();
-    }
+
     release_term();
   });
 

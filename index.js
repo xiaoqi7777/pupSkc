@@ -15,7 +15,7 @@ const iptvMock = new IptvMocker( {
 })
 
 // const sk_host ="ws://47.96.129.127"
-const sk_host ="ws://192.168.1.165"
+const sk_host ="ws://47.96.129.127"
 const sk_port = "3000"
 const version = "1.0.0-version_fix"
 const clientSocket = require("socket.io-client")(sk_host + ':' + sk_port, {
@@ -38,6 +38,7 @@ async function main() {
 	//await iptv.waitFor(9000);
 	await iptv.moveRight(7); 
 	await iptv.moveUp(1); 
+
 	
 	iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse); 
 	iptv.addPageProcessor(/iptvepg\/frame50\/get_vod_column.jsp\?columnId\=/, null, vodAuto.vodLevel1Response); 
