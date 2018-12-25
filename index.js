@@ -1,4 +1,4 @@
-const IptvMocker = require('./lib/pup/iptvMocker2'); 
+const IptvMocker = require('./lib/spiderAuto/iptvMocker2'); 
 const socketIo = require('socket.io'); 
 import {vodOnResponse,vodOnLoad}from './lib/spiderAuto/vodPage'
 const vodAuto = require('./lib/spiderAuto/vodPageAuto'); 
@@ -29,10 +29,6 @@ const clientSocket = require("socket.io-client")(sk_host + ':' + sk_port, {
 
 async function main() {
 	let iptv = await iptvMock.init(); 
-
-	// clientSocket.on('connect',data=>console.log(`---success---${data}`))
-	// clientSocket.on('error',data=>console.log(`---error---${data}`))
-	// clientSocket.on('disconnect',data=>console.log(`---disconnect---${data}`))
 
 	await iptv.auth(); 
 	//await iptv.waitFor(9000);

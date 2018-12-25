@@ -33,7 +33,7 @@ import {
   exchangeForUrl,
   isBackErrorProcessor,
   demandExchangeForUrl
-} from './lib/pup/IptvRemoteControl';
+} from './lib/spiderAuto/IptvRemoteControl';
 
 import {
   vodOnLoad,
@@ -47,8 +47,6 @@ let serial_number;
 let skc_online = false;
 let terms = {};
 let remote_password;
-// let remote_control_server_host;
-// let remote_control_server_port;
 
 //断开连接后重试间隔
 let retry_interval = 2;
@@ -59,7 +57,7 @@ let _token;
 let remote_data = {};
 
 let iptv = null;
-const IptvMocker = require('./lib/pup/iptvMocker2');
+const IptvMocker = require('./lib/spiderAuto/iptvMocker2');
 const iptvMock = new IptvMocker({
   url: 'http://iptvauth.online.sh.cn:7001/iptv3a/hdLogAuth.do?UserID=75720573&Action=Login&Mode=MENU.SMG',
   headless: false,
@@ -94,14 +92,9 @@ async function socket_io_client() {
     logger.info('登录完成×××××××××××××××')
     try {
 
-      // 一直发送图片
-      // let emitImg = {
-      //   value:()
-      // }
       let img;
       setInterval(() => {
         img = iptv.getScreenshot()
-        console.log('emit++img')
         socket.emit('img', {
           value: img
         })
@@ -112,7 +105,6 @@ async function socket_io_client() {
       })
 
       socket.on('get_play_url',async(data)=>{
-        console.log('get_play_url',data)
         demandExchangeForUrl(iptv,data)
       })
 
@@ -167,20 +159,6 @@ async function socket_io_client() {
 
   });
 
-  // socket.on('key_board', async (key) => {
-  //   listenResponse.emit('isBack', key.value)
-  //   pageEventEmitter.emit('nodeIsBack', ischangeIframe)
-  //   if (key.value === 'back' && ischangeIframe === 'on') {
-  //     return
-  //   }
-  //   let imgAdress = await skFn.checkPageUrl(key, child, listenResponse)
-
-  //   socket.emit('img', {
-  //     value: imgAdress,
-  //     isBack: ischangeIframe
-  //   })
-
-  // });
 
 
   socket.on('not found', async () => {
@@ -372,6 +350,7 @@ async function socket_io_client() {
 
 function on_rsh(rsh_req) {
   console.dir(rsh_req);
+  logger.info(`rsh_req:${JSON.stringify(rsh_req)}`);
   let sshauth = "password,keyboard-interactive";
   let ssh_user = rsh_req.user_name ? rsh_req.user_name : 'root';
   logger.info("ssh request accepted.");
