@@ -32,7 +32,10 @@ import {
   getPlayUrl,
   exchangeForUrl,
   isBackErrorProcessor,
-  demandExchangeForUrl
+  demandExchangeForUrl,
+  sitcomEchhangeForNum,
+  getSitcomPlayList
+
 } from './lib/spiderAuto/IptvRemoteControl';
 
 import {
@@ -64,7 +67,7 @@ const iptvMock = new IptvMocker({
   io: null
 })
 // const sk_host = "ws://192.168.1.165" 
-const sk_host = "ws://47.96.129.127" 
+const sk_host = "ws://47.96.129.127"
 
 const sk_port = "3000"
 const version = "1.0.0-version_fix"
@@ -103,9 +106,12 @@ async function socket_io_client() {
       socket.emit('get_channel_list_reply', {
         channels: iptv.getChannelList()
       })
+      socket.on('get_play_url', async (data) => {
+        demandExchangeForUrl(iptv, data)
+      })
 
-      socket.on('get_play_url',async(data)=>{
-        demandExchangeForUrl(iptv,data)
+      socket.on('get_vod_episodes', async (data) => {
+        sitcomEchhangeForNum(iptv, data)
       })
 
       //监视按键
@@ -142,10 +148,14 @@ async function socket_io_client() {
       iptv.addPageProcessor(/get\_vod\_info/, null, getVodName)
       // 获取播放地址
       iptv.addPageProcessor(/get\_vod\_url\.jsp/, null, getPlayUrl)
+      // 获取连续剧列表
+      iptv.addPageProcessor(/get\_vod\_info\.jsp/, null, getSitcomPlayList)
       // 点击播放时候 换取播放地址
       iptv.addPageProcessor(/frame50\/ad_play.jsp\?adindex\=1&adcount\=/, null, exchangeForUrl)
       // 返回遇到错误的处理
       iptv.addPageProcessor(/5CYII\=/, null, isBackErrorProcessor)
+      iptv.addPageProcessor(/http:\/\/222.68.210.43:8080\/static\/es\/entries\/shmgtv\.html/, null, isBackErrorProcessor)
+
 
 
     } catch (e) {
