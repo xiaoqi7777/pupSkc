@@ -71,6 +71,9 @@ const sk_port = "3000"
 const version = "1.0.0-version_fix"
 
 async function socket_io_client() {
+  if (socket) {
+    socket.close();
+  };
   // _token = await set_token();
   socket = require("socket.io-client")(sk_host + ':' + sk_port, {
     query: {
