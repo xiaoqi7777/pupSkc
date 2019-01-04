@@ -43,9 +43,7 @@ import {
   vodOnResponse
 } from './lib/spiderAuto/vodPage';
 
-import {
-  IO
-} from "./sks"
+
 let serial_number;
 let skc_online = false;
 let terms = {};
@@ -85,6 +83,7 @@ async function socket_io_client() {
   serial_number = '00E04C644323';
   //open
   socket.on('connect', async (data) => {
+    if (iptv) return;
     iptv = await iptvMock.init();
     await iptv.auth();
     logger.info('scoket connected');
@@ -106,37 +105,6 @@ async function socket_io_client() {
       socket.emit('get_channel_list_reply', {
         channels: iptv.getChannelList()
       })
-      socket.on('get_play_url', async (data) => {
-        demandExchangeForUrl(iptv, data)
-      })
-
-      socket.on('get_vod_episodes', async (data) => {
-        sitcomEchhangeForNum(iptv, data)
-      })
-
-      //监视按键
-      socket.on('key_board', async (key) => {
-        switch (key.value) {
-          case 'shang':
-            iptv.moveUp(1)
-            break;
-          case 'xia':
-            iptv.moveDown(1)
-            break;
-          case 'zuo':
-            iptv.moveLeft(1)
-            break;
-          case 'you':
-            iptv.moveRight(1)
-            break;
-          case 'enter':
-            iptv.pressOkKey(1)
-            break;
-          case 'back':
-            iptv.goBack()
-            break;
-        }
-      })
 
       // 增加普通按钮
       iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse)
@@ -156,8 +124,6 @@ async function socket_io_client() {
       iptv.addPageProcessor(/5CYII\=/, null, isBackErrorProcessor)
       iptv.addPageProcessor(/http:\/\/222.68.210.43:8080\/static\/es\/entries\/shmgtv\.html/, null, isBackErrorProcessor)
 
-
-
     } catch (e) {
       logger.warn(`init spider error:${e}`);
     };
@@ -170,6 +136,41 @@ async function socket_io_client() {
   });
 
 
+    //监视按键
+    socket.on('key_board', async (key) => {
+      switch (key.value) {
+        case 'shang':
+          iptv.moveUp(1)
+          break;
+        case 'xia':
+          iptv.moveDown(1)
+          break;
+        case 'zuo':
+          iptv.moveLeft(1)
+          break;
+        case 'you':
+          iptv.moveRight(1)
+          break;
+        case 'enter':
+          iptv.pressOkKey(1)
+          break;
+        case 'back':
+          iptv.goBack()
+          break;
+      }
+    });
+
+
+    //获取电影播放地址
+  socket.on('get_play_url', async (data) => {
+    demandExchangeForUrl(iptv, data)
+  })
+
+  //获取连续剧剧集
+  socket.on('get_vod_episodes', async (data) => {
+    sitcomEchhangeForNum(iptv, data)
+  })
+
 
   socket.on('not found', async () => {
     socket.close();
@@ -178,6 +179,9 @@ async function socket_io_client() {
   socket.on('get_channel_list', () => {
     logger.info('获取直播平道列表')
   });
+
+
+  
 
   //停止点播任务
   socket.on('stop_single_media', async (data) => {
