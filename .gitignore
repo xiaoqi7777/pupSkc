@@ -1,0 +1,13 @@
+node_modules
+.vs
+.idea
+package-lock.json
+*.log
+logs/
+config.js
+**.swp
+public/static
+public/index.html
+.DS_Store
+tmp/
+agent-*

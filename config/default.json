@@ -1,0 +1,83 @@
+{
+  //  Customer module configs
+  "db": {
+    "username": "agent",
+    "password": "abc",
+    "database": "agent",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "http_api": {
+    "port": 3001,
+    "host": "192.168.1.81"
+  },
+  "transcoder": {
+    "host": "127.0.0.1",
+    "port": 2030,
+    "out_type": "rtmp",
+    "out_address": "rtmp://47.96.129.127"//rtmp://47.96.129.127
+  },
+  "cloud": {
+    "remote_control_bind_port": 0,
+    "sk_host": "ws://47.96.129.127",
+    "sk_port": "3000",
+    "socket_type": "socket_io" //socket_io,web_socket
+  },
+  "socket_io": {
+    "ping_interval": 3000,
+    "ping_timeout": 15000
+  },
+  "ws": {
+    "address":"ws://47.96.129.127:3002",
+    "heart_beat": 5000
+  },
+  "task_json": {
+    "input": {
+      "url": "http://192.168.1.232:8000/live/ZJWS",
+      "protocol": "http"
+    },
+    "output": {
+      "protocol": "rtmp",
+      "detail": {
+        "stream_address": "rtmp://192.168.1.123:3000/resr/ft",
+        "stream_name": ""
+      }
+    },
+    "recover": 1,
+    "static": 1,
+    "character": {
+      "video_codec": {
+        "name": "h264",
+        "bitrate": 2000,
+        "framerate": "25",
+        "keyframerate": "3",
+        "referenceframe": "3",
+        "bframes": "3",
+        "bitratectrl": "3",
+        "multithreads": 4,
+        "display_ratio": "-1",
+        "width": 1280,
+        "height": 720,
+        "subtype": "high_profile",
+        "level": "51",
+        "interlaced": "0",
+        "fastmode": "2",
+        "delay": "1"
+      },
+      "audio_codec": {
+        "name": "aac",
+        "bitrate": 64,
+        "samplerate": "0",
+        "channels": "0",
+        "volume": "0"
+      },
+      "miscellaneous": {
+        "deinterlace": "-1",
+        "syncqueue_deep": 2000
+      },
+      "label": {
+        "complex": []
+      }
+    }
+  }
+}
