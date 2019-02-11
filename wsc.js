@@ -30,6 +30,7 @@ async function on_open() {
   stream = net.connect({
     port: 1717
   })
+  console.log('stream',stream)
 
   stream.on('error', function () {
     console.error('Be sure to run `adb forward tcp:1717 localabstract:minicap`')

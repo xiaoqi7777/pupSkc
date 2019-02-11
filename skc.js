@@ -108,6 +108,10 @@ async function socket_io_client() {
       socket.emit('get_channel_list_reply', {
         channels: iptv.getChannelList()
       })
+	setInterval(()=>{
+   		console.log('執行頁面刷新循環')
+  		iptv.reload()
+	},3600000)
 
       // 增加普通按钮
       iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse)
@@ -197,6 +201,8 @@ async function socket_io_client() {
         'task_id': task_id
       });
       logger.info(`发送定制任务完成通知成功`);
+//      iptv.reload();
+      logger.info(`调用iptv.reload方法`);
     };
     logger.info(`停止${data.play_url}/${task_id}任务结果:${JSON.stringify(stop_result)}`);
   });
