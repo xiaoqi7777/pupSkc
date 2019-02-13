@@ -114,7 +114,7 @@ async function socket_io_client() {
 	},3600000)
 
       // 增加普通按钮
-      iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse)
+      iptv.addPageProcessor(/vod_portal.jsp$/, null, vodOnResponse)
       // 首页阻止返回
       iptv.addPageProcessor(/bg\_index\_club\_new2/, null, preventBack)
       // 获取普通电视 --电影名字
@@ -126,7 +126,7 @@ async function socket_io_client() {
       // 获取连续剧列表
       iptv.addPageProcessor(/get\_vod\_info\.jsp/, null, getSitcomPlayList)
       // 点击播放时候 换取播放地址
-      iptv.addPageProcessor(/frame50\/ad_play.jsp\?adindex\=1&adcount\=/, null, exchangeForUrl)
+      iptv.addPageProcessor(/ad_play.jsp\?adindex\=1&adcount\=/, null, exchangeForUrl)
       // 返回遇到错误的处理
       iptv.addPageProcessor(/5CYII\=/, null, isBackErrorProcessor)
       iptv.addPageProcessor(/http:\/\/222.68.210.43:8080\/static\/es\/entries\/shmgtv\.html/, null, isBackErrorProcessor)

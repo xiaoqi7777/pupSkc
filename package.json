@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./node_modules/babel-cli/bin/babel-node.js  bin/www",
     "dev": "./node_modules/.bin/nodemon --exec babel-node -- bin/www",
+    "pup": "babel-node index.js",
     "prd": "pm2 start bin/www",
     "test": "node ./node_modules/babel-cli/bin/babel-node.js ./node_modules/mocha/bin/mocha  --require babel-register"
   },

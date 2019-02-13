@@ -40,8 +40,8 @@ async function main() {
 	await iptv.moveUp(1);
 
 
-	iptv.addPageProcessor(/frame50\/vod_portal.jsp$/, null, vodOnResponse);
-	iptv.addPageProcessor(/iptvepg\/frame50\/get_vod_column.jsp\?columnId\=/, null, vodAuto.vodLevel1Response);
+	iptv.addPageProcessor(/vod_portal.jsp$/, null, vodOnResponse);
+	iptv.addPageProcessor(/get_vod_column.jsp\?columnId\=/, null, vodAuto.vodLevel1Response);
 	await iptv.pressOkKey();
 	await iptv.waitFor(2000);
 
